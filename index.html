@@ -28,36 +28,28 @@
   </header>
 
   <main class="container">
-    <!-- Form Detail Project -->
+    <!-- Section Project Active -->
     <section class="card">
-      <h2>Detail Project Active</h2>
-      
-      <div class="form-group">
+      <div class="card-header">
+        <h2>Detail Project Active</h2>
+        <button class="btn btn-success" onclick="executeAllUrls()">🚀 Buka Semua URL Serentak</button>
+      </div>
+
+      <div class="form-group margin-bottom-lg">
         <label>Nama Project:</label>
-        <input type="text" id="projectName" oninput="updateProjectData()">
+        <input type="text" id="projectName" oninput="updateProjectName()">
       </div>
 
-      <div class="form-group">
-        <label>Folder Project / Path Explorer Local:</label>
-        <input type="text" id="projectFolder" placeholder="C:\Projects\MyApp atau /home/user/app" oninput="updateProjectData()">
+      <hr class="divider">
+
+      <!-- Dynamic Items Header -->
+      <div class="card-header">
+        <h3>Daftar Link URL / Path Folder / Bahan Project</h3>
+        <button class="btn btn-primary btn-sm" onclick="addDynamicItem()">+ Tambah Kolom Item</button>
       </div>
 
-      <div class="form-group">
-        <label>URL Hosting / Live Project:</label>
-        <input type="url" id="projectHostingUrl" placeholder="https://myproject.github.io" oninput="updateProjectData()">
-        <button class="btn btn-secondary btn-sm" onclick="openUrl('projectHostingUrl')">Buka URL Hosting</button>
-      </div>
-
-      <div class="form-group">
-        <label>Multi-URL Tab (Satu URL per baris):</label>
-        <textarea id="projectUrls" rows="3" placeholder="https://github.com/user/repo&#10;https://figma.com/file/xyz" oninput="updateProjectData()"></textarea>
-        <button class="btn btn-success" onclick="openAllUrls()">🚀 Buka Semua Tab URL</button>
-      </div>
-
-      <div class="form-group">
-        <label>Catatan Kendala & Bahan App:</label>
-        <textarea id="projectNotes" rows="5" placeholder="Copas kendala error, snippet kode, atau instruksi di sini..." oninput="updateProjectData()"></textarea>
-      </div>
+      <!-- Container untuk Kolom Dinamis -->
+      <div id="dynamicItemsContainer" class="items-container"></div>
     </section>
 
     <!-- Cloud & Local Backup -->

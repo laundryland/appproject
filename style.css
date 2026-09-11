@@ -37,7 +37,7 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 950px;
   margin: 20px auto;
   padding: 0 15px;
   display: flex;
@@ -52,16 +52,32 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.card h2 {
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.card h2, .card h3 {
   font-size: 1.25rem;
   color: #111827;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 8px;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 20px 0;
+}
+
+.margin-bottom-lg {
+  margin-bottom: 20px;
 }
 
 .form-group {
-  margin-bottom: 15px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -74,6 +90,7 @@ body {
 
 input[type="text"],
 input[type="url"],
+select,
 textarea {
   width: 100%;
   padding: 10px;
@@ -82,10 +99,53 @@ textarea {
   font-size: 0.95rem;
 }
 
-input:focus, textarea:focus {
+input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Dynamic Item Row Style */
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.item-row {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-row-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.item-row-header input {
+  flex: 2;
+  font-weight: 600;
+}
+
+.item-row-header select {
+  flex: 1;
+}
+
+.item-row-body {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.item-row-body input,
+.item-row-body textarea {
+  flex: 1;
 }
 
 .button-group {
@@ -101,12 +161,12 @@ input:focus, textarea:focus {
   cursor: pointer;
   font-weight: 600;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .btn-sm {
-  align-self: flex-start;
-  margin-top: 5px;
-  font-size: 0.8rem;
+  padding: 6px 12px;
+  font-size: 0.85rem;
 }
 
 .btn-primary { background-color: #2563eb; color: white; }
