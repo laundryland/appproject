@@ -1,4 +1,4 @@
-// Register Service Worker
+// Register Service Worker untuk kemampuan PWA Offline
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -7,27 +7,32 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Default Storage Structure dengan Guard
+// Inisialisasi & Default Storage Structure
 let appData = JSON.parse(localStorage.getItem('APP_PROJECT_DATA')) || {
   activeProjectIndex: 0,
   cloudUrl: "",
   projects: [
     {
-      name: "Project Sample",
+      name: "Project Utama",
       items: [
         { label: "Github Repo", type: "url", value: "https://github.com" },
-        { label: "Folder Source Code", type: "folder", value: "C:\\Projects\\MyApp" },
-        { label: "Catatan Project", type: "text", value: "Daftar kebutuhan bahan..." }
+        { label: "Folder Local", type: "folder", value: "C:\\Projects\\MyApp" },
+        { label: "Catatan Bahan", type: "text", value: "Catatan kebutuhan project..." }
       ]
     }
   ]
 };
 
-// Memastikan setiap project memiliki array items
+// Fungsi Sanitasi Data untuk mencegah error struktur data lama
 function sanitizeData() {
   if (!appData.projects || !Array.isArray(appData.projects) || appData.projects.length === 0) {
     appData.projects = [{ name: "Project Utama", items: [] }];
   }
+  
+  if (appData.activeProjectIndex === undefined || appData.activeProjectIndex >= appData.projects.length) {
+    appData.activeProjectIndex = 0;
+  }
+
   appData.projects.forEach(proj => {
     if (!Array.isArray(proj.items)) {
       proj.items = [];
@@ -35,20 +40,28 @@ function sanitizeData() {
   });
 }
 
-// DOM Load
+// Inisialisasi saat Halaman Selesai Dimuat
 document.addEventListener('DOMContentLoaded', () => {
   sanitizeData();
   renderProjectDropdown();
   loadCurrentProjectData();
-  document.getElementById('cloudUrl').value = appData.cloudUrl || "";
+  
+  const cloudUrlInput = document.getElementById('cloudUrl');
+  if (cloudUrlInput) {
+    cloudUrlInput.value = appData.cloudUrl || "";
+  }
 });
 
+// Simpan Data ke LocalStorage
 function saveData() {
   localStorage.setItem('APP_PROJECT_DATA', JSON.stringify(appData));
 }
 
+// Render Pilihan Project di Dropdown Header
 function renderProjectDropdown() {
   const select = document.getElementById('projectSelect');
+  if (!select) return;
+  
   select.innerHTML = '';
   appData.projects.forEach((proj, idx) => {
     const opt = document.createElement('option');
@@ -59,22 +72,30 @@ function renderProjectDropdown() {
   });
 }
 
+// Load Data Project Aktif ke Tampilan
 function loadCurrentProjectData() {
   sanitizeData();
   const proj = appData.projects[appData.activeProjectIndex];
   if (!proj) return;
   
-  document.getElementById('projectName').value = proj.name || '';
+  const projectNameInput = document.getElementById('projectName');
+  if (projectNameInput) {
+    projectNameInput.value = proj.name || '';
+  }
+  
   renderDynamicItems();
 }
 
+// Update Nama Project Saat Diubah
 function updateProjectName() {
   const idx = appData.activeProjectIndex;
-  appData.projects[idx].name = document.getElementById('projectName').value;
+  const nameVal = document.getElementById('projectName').value;
+  appData.projects[idx].name = nameVal;
   saveData();
   renderProjectDropdown();
 }
 
+// Ganti Project Aktif dari Dropdown
 function switchProject() {
   const select = document.getElementById('projectSelect');
   appData.activeProjectIndex = parseInt(select.value) || 0;
@@ -82,6 +103,7 @@ function switchProject() {
   loadCurrentProjectData();
 }
 
+// Tambah Workspace Project Baru
 function createNewProject() {
   sanitizeData();
   const newProj = {
@@ -98,6 +120,7 @@ function createNewProject() {
   loadCurrentProjectData();
 }
 
+// Hapus Project Aktif
 function deleteCurrentProject() {
   sanitizeData();
   if (appData.projects.length <= 1) {
@@ -113,12 +136,13 @@ function deleteCurrentProject() {
   }
 }
 
-// Render Dynamic Item Rows dengan Tombol Eksekusi di Setiap Kolom
+// Render Seluruh Kolom Dinamis & Tombol Eksekusi
 function renderDynamicItems() {
   sanitizeData();
   const container = document.getElementById('dynamicItemsContainer');
-  container.innerHTML = '';
+  if (!container) return;
   
+  container.innerHTML = '';
   const currentItems = appData.projects[appData.activeProjectIndex].items;
 
   currentItems.forEach((item, index) => {
@@ -128,14 +152,13 @@ function renderDynamicItems() {
     let valueControlHtml = '';
     let actionBtnHtml = '';
 
-    // Tombol eksekusi disesuaikan berdasarkan tipe kolom
     if (item.type === 'text') {
       valueControlHtml = `<textarea placeholder="Isi catatan / bahan..." oninput="updateItemValue(${index}, this.value)" rows="2">${item.value}</textarea>`;
       actionBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="executeSingleItem(${index})">▶️ Salin Teks</button>`;
     } else if (item.type === 'folder') {
       valueControlHtml = `<input type="text" value="${item.value}" placeholder="Path Folder (contoh: C:\\Projects\\App)" oninput="updateItemValue(${index}, this.value)">`;
       actionBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="executeSingleItem(${index})">▶️ Salin Path</button>`;
-    } else { // URL
+    } else { // type === 'url'
       valueControlHtml = `<input type="url" value="${item.value}" placeholder="https://..." oninput="updateItemValue(${index}, this.value)">`;
       actionBtnHtml = `<button class="btn btn-info btn-sm" onclick="executeSingleItem(${index})">▶️ Buka Link</button>`;
     }
@@ -160,7 +183,7 @@ function renderDynamicItems() {
   });
 }
 
-// Tambah Kolom Aman Tanpa Error
+// Tambah Baris Kolom Baru
 function addDynamicItem() {
   sanitizeData();
   const currentItems = appData.projects[appData.activeProjectIndex].items;
@@ -169,6 +192,7 @@ function addDynamicItem() {
   renderDynamicItems();
 }
 
+// Hapus Baris Kolom
 function deleteItem(index) {
   sanitizeData();
   const currentItems = appData.projects[appData.activeProjectIndex].items;
@@ -177,23 +201,26 @@ function deleteItem(index) {
   renderDynamicItems();
 }
 
+// Update Label Kolom
 function updateItemLabel(index, val) {
   appData.projects[appData.activeProjectIndex].items[index].label = val;
   saveData();
 }
 
+// Update Isi Value Kolom
 function updateItemValue(index, val) {
   appData.projects[appData.activeProjectIndex].items[index].value = val;
   saveData();
 }
 
+// Update Tipe Kolom (URL / Folder / Teks)
 function updateItemType(index, typeVal) {
   appData.projects[appData.activeProjectIndex].items[index].type = typeVal;
   saveData();
   renderDynamicItems();
 }
 
-// Eksekusi Item Mandiri
+// Eksekusi Masing-Masing Kolom
 function executeSingleItem(index) {
   sanitizeData();
   const item = appData.projects[appData.activeProjectIndex].items[index];
@@ -212,11 +239,13 @@ function executeSingleItem(index) {
     // Tipe Folder atau Teks disalin ke Clipboard
     navigator.clipboard.writeText(item.value).then(() => {
       alert(`Berhasil disalin ke clipboard:\n${item.value}`);
+    }).catch(() => {
+      alert("Gagal menyalin otomatis. Silakan salin manual.");
     });
   }
 }
 
-// Buka Semua Tab URL Serentak
+// Eksekusi Semua URL Serentak di Multi-Tab
 function executeAllUrls() {
   sanitizeData();
   const currentItems = appData.projects[appData.activeProjectIndex].items || [];
@@ -234,14 +263,17 @@ function executeAllUrls() {
     }
     window.open(validUrl, '_blank');
   });
+
+  alert(`Mencoba membuka ${urlItems.length} tab URL.\n\nCatatan: Jika hanya 1 tab yang terbuka, pastikan izin 'Pop-up and Redirects' di browser Anda sudah di-ALLOW.`);
 }
 
-// Backup & Cloud Operations
+// Simpan URL Endpoint Google Apps Script
 function saveCloudUrlData() {
-  appData.cloudUrl = document.getElementById('cloudUrl').value;
+  appData.cloudUrl = document.getElementById('cloudUrl').value.trim();
   saveData();
 }
 
+// Export Backup File JSON Lokal
 function exportLocalBackup() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
   const downloadAnchor = document.createElement('a');
@@ -252,12 +284,13 @@ function exportLocalBackup() {
   downloadAnchor.remove();
 }
 
+// Restore Backup File JSON Lokal
 function importLocalBackup(event) {
   const fileReader = new FileReader();
   fileReader.onload = function(e) {
     try {
       const importedData = JSON.parse(e.target.result);
-      if (importedData.projects) {
+      if (importedData && importedData.projects) {
         appData = importedData;
         sanitizeData();
         saveData();
@@ -272,9 +305,12 @@ function importLocalBackup(event) {
       alert("Gagal membaca berkas JSON.");
     }
   };
-  fileReader.readAsText(event.target.files[0]);
+  if (event.target.files[0]) {
+    fileReader.readAsText(event.target.files[0]);
+  }
 }
 
+// Sync Backup ke Google Drive via Google Apps Script (Anti-CORS)
 function syncToCloud() {
   const cloudUrl = appData.cloudUrl;
   if (!cloudUrl) {
@@ -284,12 +320,12 @@ function syncToCloud() {
 
   fetch(cloudUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(appData)
   })
-  .then(res => {
-    if (res.ok) alert("Data berhasil di-backup ke Cloud!");
-    else alert("Gagal mengunggah ke Cloud. Status: " + res.status);
+  .then(() => {
+    alert("Proses Backup ke Google Drive selesai!\nSilakan cek file JSON baru di Google Drive Anda.");
   })
   .catch(err => alert("Error koneksi Cloud: " + err.message));
 }
