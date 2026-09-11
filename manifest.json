@@ -1,21 +1,23 @@
 {
   "short_name": "APP PROJECT",
-  "name": "APP PROJECT - Dev Manager",
+  "name": "APP PROJECT - Project Manager Workspace",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon-192x192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "icon.png",
+      "src": "icon-512x512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#0f172a",
-  "theme_color": "#1e293b",
+  "background_color": "#2563eb",
+  "theme_color": "#2563eb",
   "display": "standalone",
-  "orientation": "any"
+  "orientation": "portrait"
 }
