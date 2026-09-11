@@ -7,7 +7,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Default Storage Structure
+// Default Storage Structure dengan Guard
 let appData = JSON.parse(localStorage.getItem('APP_PROJECT_DATA')) || {
   activeProjectIndex: 0,
   cloudUrl: "",
@@ -16,16 +16,28 @@ let appData = JSON.parse(localStorage.getItem('APP_PROJECT_DATA')) || {
       name: "Project Sample",
       items: [
         { label: "Github Repo", type: "url", value: "https://github.com" },
-        { label: "Figma Design", type: "url", value: "https://figma.com" },
-        { label: "Folder Source Code", type: "folder", value: "D:\\Projects\\MyApp" },
-        { label: "Catatan Kendala", type: "text", value: "Perlu perbaikan modul login" }
+        { label: "Folder Source Code", type: "folder", value: "C:\\Projects\\MyApp" },
+        { label: "Catatan Project", type: "text", value: "Daftar kebutuhan bahan..." }
       ]
     }
   ]
 };
 
+// Memastikan setiap project memiliki array items
+function sanitizeData() {
+  if (!appData.projects || !Array.isArray(appData.projects) || appData.projects.length === 0) {
+    appData.projects = [{ name: "Project Utama", items: [] }];
+  }
+  appData.projects.forEach(proj => {
+    if (!Array.isArray(proj.items)) {
+      proj.items = [];
+    }
+  });
+}
+
 // DOM Load
 document.addEventListener('DOMContentLoaded', () => {
+  sanitizeData();
   renderProjectDropdown();
   loadCurrentProjectData();
   document.getElementById('cloudUrl').value = appData.cloudUrl || "";
@@ -48,6 +60,7 @@ function renderProjectDropdown() {
 }
 
 function loadCurrentProjectData() {
+  sanitizeData();
   const proj = appData.projects[appData.activeProjectIndex];
   if (!proj) return;
   
@@ -64,17 +77,18 @@ function updateProjectName() {
 
 function switchProject() {
   const select = document.getElementById('projectSelect');
-  appData.activeProjectIndex = parseInt(select.value);
+  appData.activeProjectIndex = parseInt(select.value) || 0;
   saveData();
   loadCurrentProjectData();
 }
 
 function createNewProject() {
+  sanitizeData();
   const newProj = {
     name: "Project Baru " + (appData.projects.length + 1),
     items: [
-      { label: "URL Website", type: "url", value: "" },
-      { label: "Folder Project", type: "folder", value: "" }
+      { label: "Link URL", type: "url", value: "" },
+      { label: "Path Folder", type: "folder", value: "" }
     ]
   };
   appData.projects.push(newProj);
@@ -85,6 +99,7 @@ function createNewProject() {
 }
 
 function deleteCurrentProject() {
+  sanitizeData();
   if (appData.projects.length <= 1) {
     alert("Minimal harus ada 1 project.");
     return;
@@ -98,12 +113,13 @@ function deleteCurrentProject() {
   }
 }
 
-// Render Dynamic Item Rows
+// Render Dynamic Item Rows dengan Tombol Eksekusi di Setiap Kolom
 function renderDynamicItems() {
+  sanitizeData();
   const container = document.getElementById('dynamicItemsContainer');
   container.innerHTML = '';
   
-  const currentItems = appData.projects[appData.activeProjectIndex].items || [];
+  const currentItems = appData.projects[appData.activeProjectIndex].items;
 
   currentItems.forEach((item, index) => {
     const row = document.createElement('div');
@@ -112,26 +128,27 @@ function renderDynamicItems() {
     let valueControlHtml = '';
     let actionBtnHtml = '';
 
+    // Tombol eksekusi disesuaikan berdasarkan tipe kolom
     if (item.type === 'text') {
-      valueControlHtml = `<textarea placeholder="Isi catatan atau bahan..." oninput="updateItemValue(${index}, this.value)" rows="2">${item.value}</textarea>`;
-      actionBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="copyToClipboard('${index}')">📋 Copy Teks</button>`;
+      valueControlHtml = `<textarea placeholder="Isi catatan / bahan..." oninput="updateItemValue(${index}, this.value)" rows="2">${item.value}</textarea>`;
+      actionBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="executeSingleItem(${index})">▶️ Salin Teks</button>`;
     } else if (item.type === 'folder') {
-      valueControlHtml = `<input type="text" value="${item.value}" placeholder="Path Folder (Contoh: C:\\Projects\\App)" oninput="updateItemValue(${index}, this.value)">`;
-      actionBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="copyToClipboard('${index}')">📋 Copy Path</button>`;
+      valueControlHtml = `<input type="text" value="${item.value}" placeholder="Path Folder (contoh: C:\\Projects\\App)" oninput="updateItemValue(${index}, this.value)">`;
+      actionBtnHtml = `<button class="btn btn-secondary btn-sm" onclick="executeSingleItem(${index})">▶️ Salin Path</button>`;
     } else { // URL
       valueControlHtml = `<input type="url" value="${item.value}" placeholder="https://..." oninput="updateItemValue(${index}, this.value)">`;
-      actionBtnHtml = `<button class="btn btn-info btn-sm" onclick="openSingleUrl('${item.value}')">🔗 Buka Tab</button>`;
+      actionBtnHtml = `<button class="btn btn-info btn-sm" onclick="executeSingleItem(${index})">▶️ Buka Link</button>`;
     }
 
     row.innerHTML = `
       <div class="item-row-header">
-        <input type="text" value="${item.label}" placeholder="Label Kolom (misal: GitHub, Figma, Path...)" oninput="updateItemLabel(${index}, this.value)">
+        <input type="text" value="${item.label}" placeholder="Label Kolom..." oninput="updateItemLabel(${index}, this.value)">
         <select onchange="updateItemType(${index}, this.value)">
           <option value="url" ${item.type === 'url' ? 'selected' : ''}>Link URL</option>
           <option value="folder" ${item.type === 'folder' ? 'selected' : ''}>Path Folder</option>
           <option value="text" ${item.type === 'text' ? 'selected' : ''}>Teks / Catatan</option>
         </select>
-        <button class="btn btn-danger btn-sm" onclick="deleteItem(${index})">🗑️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem(${index})">🗑️ Hapus</button>
       </div>
       <div class="item-row-body">
         ${valueControlHtml}
@@ -143,14 +160,17 @@ function renderDynamicItems() {
   });
 }
 
+// Tambah Kolom Aman Tanpa Error
 function addDynamicItem() {
+  sanitizeData();
   const currentItems = appData.projects[appData.activeProjectIndex].items;
-  currentItems.push({ label: "Kolom Baru", type: "url", value: "" });
+  currentItems.push({ label: "Kolom Baru " + (currentItems.length + 1), type: "url", value: "" });
   saveData();
   renderDynamicItems();
 }
 
 function deleteItem(index) {
+  sanitizeData();
   const currentItems = appData.projects[appData.activeProjectIndex].items;
   currentItems.splice(index, 1);
   saveData();
@@ -173,28 +193,37 @@ function updateItemType(index, typeVal) {
   renderDynamicItems();
 }
 
-// Execution Functions
-function openSingleUrl(url) {
-  if (!url) return alert("URL masih kosong!");
-  let validUrl = url.startsWith('http://') || url.startsWith('https://') ? url : 'https://' + url;
-  window.open(validUrl, '_blank');
-}
+// Eksekusi Item Mandiri
+function executeSingleItem(index) {
+  sanitizeData();
+  const item = appData.projects[appData.activeProjectIndex].items[index];
+  if (!item || !item.value.trim()) {
+    alert("Isi kolom masih kosong!");
+    return;
+  }
 
-function copyToClipboard(itemIndex) {
-  const item = appData.projects[appData.activeProjectIndex].items[itemIndex];
-  if (!item.value) return alert("Isi kolom masih kosong!");
-  navigator.clipboard.writeText(item.value).then(() => {
-    alert(`Berhasil di-copy: ${item.value}`);
-  });
+  if (item.type === 'url') {
+    let validUrl = item.value.trim();
+    if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+      validUrl = 'https://' + validUrl;
+    }
+    window.open(validUrl, '_blank');
+  } else {
+    // Tipe Folder atau Teks disalin ke Clipboard
+    navigator.clipboard.writeText(item.value).then(() => {
+      alert(`Berhasil disalin ke clipboard:\n${item.value}`);
+    });
+  }
 }
 
 // Buka Semua Tab URL Serentak
 function executeAllUrls() {
+  sanitizeData();
   const currentItems = appData.projects[appData.activeProjectIndex].items || [];
   const urlItems = currentItems.filter(item => item.type === 'url' && item.value.trim() !== '');
 
   if (urlItems.length === 0) {
-    alert("Tidak ada item ber-tipe Link URL yang terisi.");
+    alert("Tidak ada kolom ber-tipe Link URL yang terisi.");
     return;
   }
 
@@ -205,8 +234,6 @@ function executeAllUrls() {
     }
     window.open(validUrl, '_blank');
   });
-
-  alert(`Mencoba membuka ${urlItems.length} tab URL.\n\nCatatan: Jika hanya 1 tab yang terbuka, pastikan izin 'Pop-up and Redirects' di browser Anda sudah di-ALLOW untuk web ini.`);
 }
 
 // Backup & Cloud Operations
@@ -232,6 +259,7 @@ function importLocalBackup(event) {
       const importedData = JSON.parse(e.target.result);
       if (importedData.projects) {
         appData = importedData;
+        sanitizeData();
         saveData();
         renderProjectDropdown();
         loadCurrentProjectData();
