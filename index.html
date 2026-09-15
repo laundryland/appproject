@@ -3,73 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APP PROJECT</title>
-  
-  <!-- Favicon / Icon Tab Browser -->
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  
-  <!-- Manifest PWA -->
+  <title>APP PROJECT - IndexedDB Edition</title>
+  <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
-  
-  <!-- CSS Style -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <header class="app-header">
-    <h1>APP PROJECT</h1>
+    <h1>APP PROJECT <small style="font-weight:400;font-size:0.7em;opacity:0.9">IDB+CSV+PNG</small></h1>
     <div class="project-selector">
       <label for="projectSelect">Pilih Project:</label>
       <select id="projectSelect" onchange="switchProject()"></select>
-      <button class="btn btn-primary" onclick="createNewProject()">+ Project Baru</button>
+      <button class="btn btn-primary" onclick="createNewProject()">+ Baru</button>
       <button class="btn btn-danger" onclick="deleteCurrentProject()">Hapus</button>
     </div>
   </header>
 
   <main class="container">
-    <!-- Section Project Active -->
     <section class="card">
       <div class="card-header">
         <h2>Detail Project Active</h2>
-        <button class="btn btn-success" onclick="executeAllUrls()">🚀 Buka Semua URL Serentak</button>
+        <button class="btn btn-success" onclick="executeAllUrls()">🚀 Buka Semua URL</button>
       </div>
-
       <div class="form-group margin-bottom-lg">
         <label>Nama Project:</label>
         <input type="text" id="projectName" oninput="updateProjectName()">
       </div>
-
       <hr class="divider">
-
-      <!-- Dynamic Items Header -->
       <div class="card-header">
-        <h3>Daftar Link URL / Path Folder / Bahan Project</h3>
-        <button class="btn btn-primary btn-sm" onclick="addDynamicItem()">+ Tambah Kolom Item</button>
+        <h3>Daftar Link / Folder / Bahan</h3>
+        <button class="btn btn-primary btn-sm" onclick="addDynamicItem()">+ Tambah Item</button>
       </div>
-
-      <!-- Container untuk Kolom Dinamis -->
       <div id="dynamicItemsContainer" class="items-container"></div>
     </section>
 
-    <!-- Cloud & Local Backup -->
     <section class="card">
-      <h2>Backup & Restore Data</h2>
+      <h2>Backup & Restore PATEN - IndexedDB</h2>
+      <p style="font-size:0.85rem;color:#6b7280;margin-bottom:12px">Penyimpanan utama sekarang pakai <b>IndexedDB</b> (kapasitas 50MB+, tidak hilang saat clear cache biasa). Backup tambahan: JSON, CSV, PNG.</p>
       
       <div class="form-group">
-        <label>URL Cloud Backup (Endpoint API):</label>
-        <input type="url" id="cloudUrl" placeholder="https://api.jsonbin.io/v3/b/..." oninput="saveCloudUrlData()">
+        <label>URL Cloud Backup (GAS Endpoint):</label>
+        <input type="url" id="cloudUrl" placeholder="https://script.google.com/..." oninput="saveCloudUrlData()">
       </div>
 
-      <div class="button-group">
-        <button class="btn btn-primary" onclick="syncToCloud()">☁️ Eksekusi Backup Cloud</button>
-        <button class="btn btn-secondary" onclick="exportLocalBackup()">💾 Download Backup Lokal (.json)</button>
-        
-        <label class="btn btn-info custom-file-upload">
-          📂 Restore Backup Lokal
-          <input type="file" id="importFile" accept=".json" onchange="importLocalBackup(event)">
-        </label>
+      <div class="button-group" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="syncToCloud()">☁️ Backup Cloud</button>
+        <button class="btn btn-secondary" onclick="exportJSON()">💾 Export JSON (Restore Full)</button>
+        <button class="btn btn-secondary" onclick="exportCSV()">📄 Export CSV (Excel)</button>
+        <button class="btn btn-success" onclick="exportPNG()">🖼️ Export PNG (Visual+Data)</button>
       </div>
+
+      <hr class="divider">
+
+      <div class="button-group">
+        <label class="btn btn-info custom-file-upload">📂 Restore JSON<input type="file" id="importJson" accept=".json" onchange="importJSON(event)"></label>
+        <label class="btn btn-info custom-file-upload">📄 Restore CSV<input type="file" id="importCsv" accept=".csv" onchange="importCSV(event)"></label>
+        <label class="btn btn-info custom-file-upload">🖼️ Restore PNG<input type="file" id="importPng" accept=".png" onchange="importPNG(event)"></label>
+      </div>
+      <p style="font-size:0.8rem;color:#6b7280;margin-top:10px">PNG restore hanya work untuk PNG yang di-export dari tombol Export PNG di atas (karena ada hidden JSON di dalamnya).</p>
     </section>
   </main>
 
